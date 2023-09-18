@@ -1,0 +1,24 @@
+# Unit files to register to AD and create keytab
+
+#register-ad.service
+[Unit]
+Description=Register the server to <DOMAIN>
+Wants=network-online.target
+After=network-online.target ignition-firstboot-complete.service
+Before=crio.service
+ConditionFileNotEmpty=!/etc/krb5.keytab
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/bin/sh -c 'echo "password" | /sbin/adcli --verbose join -D <DOMAIN> -U <bindDN>@<DOMAIN> --stdin-password --domain-ou=OU=<hostOU>,DC=<DOMAIN> -K /etc/krb5.keytab -H %H'
+
+[Install]
+WantedBy=crio.service
+
+#rpc-gssd.service.d/override.conf
+[Unit]
+After=register-ad.service rpc_pipefs.target
+
+[Install]
+WantedBy=multi-user.target

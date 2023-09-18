@@ -40,7 +40,7 @@ ocp-worker**n**.krb5demo.lab
 2. Install nfs server (nfs-server.yml)
 3. Deploy Openshift cluster (I deployed using IPI method a cluster named krb5demo in the lab domain)
 4. Create Kerberos principal for every hosts and services (ocp-nodes.yml)
-5. **Because ipa-join is not available on CoreOS the Host keytab will be uploaded manually on each worker nodes**
+5. **Because ipa-join is not available on CoreOS the Host keytab will be uploaded manually on each worker nodes (see misc/ad-join for AD integration)**
 6. Configure Openshift worker nodes using machine config(ocp-mcp.yml)
    1. /etc/idmapd.conf
    2. /etc/nfs.conf
