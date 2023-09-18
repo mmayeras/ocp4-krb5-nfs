@@ -1,0 +1,13 @@
+FROM ubi8:8.8-1009
+
+
+RUN dnf install -y --setopt=tsflags=nodocs krb5-workstation && \
+    dnf clean all
+
+ADD krb5.conf /etc/krb5.conf 
+ADD kinit.sh /
+RUN chmod 755 /kinit.sh
+
+USER 1001
+
+ENTRYPOINT ["/kinit.sh"]

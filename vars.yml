@@ -1,0 +1,23 @@
+default_admin_password: ipaPassword
+network_domain_name: krb5demo.lab
+upstream_dns_servers: 1.2.3.4
+
+rhsm_register_rhsm_username: rhn_username
+rhsm_register_rhsm_password: xxxxxxxxxxxx
+
+ocp_token: sha256~xxxxxxxxxxxxxxxxxxxx
+ocp_api: https://api.krb5demo.lab:6443
+ocp_namespace: demonfs
+ocp_pv: demopv
+ocp_pvc: demopvc
+ocp_image: krb5demo:latest
+
+nfs_demo_user: admin
+nfs_demo_group: admins
+nfs_demo_password: password
+nfs_exports:
+  - source: /demonfs
+    dest: "*"
+    options: 
+      - rw
+      - sec=krb5:krb5i:krb5p

@@ -1,0 +1,29 @@
+- name: Install and configure IdM server
+  hosts: idm_server
+  gather_facts: true
+  become: true
+  vars_files:
+    - vars.yml
+    
+  tasks:
+
+    - name: Create demo user
+      community.general.ipa_user:
+        name: "{{ nfs_demo_user }}"
+        sn: "{{ nfs_demo_user }}"
+        password: "{{ nfs_demo_password }}"
+        state: present
+        givenname: "{{ nfs_demo_user }}"
+        ipa_host: "{{ groups['idm_server'][0] }}"
+        ipa_user: admin
+        ipa_pass: "{{ default_admin_password }}"
+
+    - name: Create group
+      community.general.ipa_group:
+        name: "{{ nfs_demo_group }}"
+        state: present
+        user:
+          - "{{ nfs_demo_user }}"
+        ipa_host: "{{ groups['idm_server'][0] }}"
+        ipa_user: admin
+        ipa_pass: "{{ default_admin_password }}"

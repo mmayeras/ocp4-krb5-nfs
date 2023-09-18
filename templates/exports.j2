@@ -1,0 +1,4 @@
+
+{% for export in nfs_exports %}
+{{ export.source }} {{ export.dest }}({{ export.options | join(',') }})
+{% endfor %}

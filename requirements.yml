@@ -1,0 +1,6 @@
+---
+collections: 
+  - name: redhat.rhel_idm
+  - name: community.okd
+  - name: community.general
+  - name: community.okd

@@ -1,0 +1,8 @@
+[idm_server]
+idm.krb5demo.lab ansible_host=10.10.x.y
+
+[nfs_server]
+nfs.krb5demo.lab ansible_host=10.10.x.z
+
+[opc_workers]
+ocp-<abcdef>-worker-0-<xyz123>.krb5demo.lab ansible_host=10.10.x.x ansible_user=core

@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: "{{ ocp_namespace }}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:restricted-v2-krb
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: "{{ ocp_namespace }}"

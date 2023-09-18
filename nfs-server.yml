@@ -1,0 +1,103 @@
+---
+- hosts: nfs_server
+  become: yes
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Register system
+      include_role:
+        name: rhsm_register
+
+    - name: Set IDM as resolver
+      set_fact:
+        idm_server_ip: "{{ hostvars[groups['idm_server'][0]]['ansible_host'] }}"     
+
+    - name: Ensure NetworkManager DNS client configuration
+      template:
+        src: ipa.conf.j2
+        dest: /etc/NetworkManager/conf.d/ipa.conf
+        owner: root
+        group: root
+        setype: NetworkManager_etc_t
+        mode: '0644'
+      notify: Restart NetworkManager
+
+
+    - meta: flush_handlers
+
+    - name: Create host entry
+      redhat.rhel_idm.ipadnsrecord:
+        ipaadmin_principal: admin
+        ipaadmin_password: "{{ default_admin_password }}"
+        name: "{{ inventory_hostname }}"
+        zone_name: "{{ network_domain_name }}"
+        record_type: 'A'
+        record_value:  "{{ hostvars[groups['nfs_server'][0]]['ansible_host'] }}"
+        create_reverse: yes
+      delegate_to: "{{ groups['idm_server'][0] }}"
+    
+    - name: Enroll host 
+      include_role:
+        name: redhat.rhel_idm.ipaclient
+      vars:
+        ipaadmin_principal: admin
+        ipaadmin_password: "{{ default_admin_password }}"
+        ipaclient_domain: "{{ network_domain_name }}"
+        ipasssd_enable_dns_updates: true
+        ipaclient_mkhomedir: true
+        ipaclient_ssh_trust_dns: true
+        ipaclient_force_join: true
+
+    - name: install nfs-utils
+      dnf:
+        name: nfs-utils
+        state: latest
+
+    - name: Create a mountable directory if it does not exist
+      file:
+        path: /krb
+        state: directory
+        owner: "{{ nfs_demo_user }}"
+        group: "{{ nfs_demo_group }}"
+        mode: '0775'
+   
+    - name: Create exports
+      template:
+        src: exports.j2
+        dest: /etc/exports
+        owner: root
+        group: root
+        mode: 0644
+      notify: new exports
+      
+    - name: Ensure service is present 
+      community.general.ipa_service:
+        name: nfs/{{ inventory_hostname }}
+        state: present
+        ipa_host: "{{ groups['idm_server'][0] }}"
+        ipa_user: admin
+        ipa_pass: "{{ default_admin_password }}"     
+
+
+  handlers:
+    - name: reload nfs
+      service:
+        name: nfs-server
+        state: reloaded
+      listen: 
+        - new exports
+    - name: export
+      shell: exportfs -r       
+      listen: 
+        - new exports
+      
+    - name: Restart NetworkManager
+      service:
+        name: NetworkManager
+        state: restarted
+

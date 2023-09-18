@@ -1,0 +1,9 @@
+---
+- name: Register system to RHN
+  community.general.redhat_subscription:
+    username: "{{ rhsm_register_rhsm_username }}"
+    password: "{{ rhsm_register_rhsm_password }}"
+    #force_register: "{{ force_register | default(true)}}"
+    state: present
+    auto_attach: true
+  when: ansible_distribution == "RedHat"

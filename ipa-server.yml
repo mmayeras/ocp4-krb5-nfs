@@ -1,0 +1,36 @@
+- name: Install and configure IdM server
+  hosts: idm_server
+  gather_facts: true
+  become: true
+  vars_files:
+    - vars.yml
+    
+  tasks:
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: ensure entry exists in /etc/hosts
+      lineinfile:
+        line: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} {{ inventory_hostname }}"
+        path: /etc/hosts
+
+    - name: Register system
+      include_role:
+        name: ../roles/rhsm_register
+
+    - name: Install IPA Server
+      include_role:
+        name: redhat.rhel_idm.ipaserver
+      vars:
+        ipaadmin_principal: admin
+        ipaadmin_password: "{{ default_admin_password }}"
+        ipaserver_domain: "{{ network_domain_name }}"
+        ipaserver_realm: "{{ network_domain_name | upper }}"
+        ipadm_password: "{{ default_admin_password }}"
+        ipaserver_setup_dns: true
+        ipaserver_no_host_dns: false
+        ipaserver_forwarders: "{{ upstream_dns_servers }}"
+        ipaserver_allow_zone_overlap: true
+        ipaserver_auto_reverse: true
+

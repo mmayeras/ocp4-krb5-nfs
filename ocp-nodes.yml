@@ -1,0 +1,49 @@
+- name: Install and configure IdM server
+  hosts: opc_workers
+  gather_facts: true
+  become: true
+  vars_files:
+    - vars.yml
+  tasks:    
+    - name: Create host entry
+      redhat.rhel_idm.ipadnsrecord:
+        ipaadmin_principal: admin
+        ipaadmin_password: "{{ default_admin_password }}"
+        name: "{{ inventory_hostname }}"
+        zone_name: "{{ network_domain_name }}"
+        record_type: 'A'
+        record_value:  "{{ hostvars[groups['nfs_server'][0]]['ansible_host'] }}"
+        create_reverse: yes
+      delegate_to: "{{ groups['idm_server'][0] }}"
+
+
+    - name: Ensure host is present
+      community.general.ipa_host:
+        name: "{{ inventory_hostname }}"
+        description: "{{ inventory_hostname }}"
+        ip_address: "{{ ansible_host }}"        
+        state: present
+        ipa_host: "{{ groups['idm_server'][0] }}"
+        ipa_user: admin
+        ipa_pass: "{{ default_admin_password }}"
+      delegate_to: "{{ groups['idm_server'][0] }}"
+
+    - name: Get Keytab
+      shell: "echo {{ default_admin_password }} | kinit admin"
+      delegate_to: "{{ groups['idm_server'][0] }}"
+      
+    - name: Get Keytab
+      shell: "ipa-getkeytab -s {{ groups['idm_server'][0] }} -p host/{{ inventory_hostname }}@{{ network_domain_name | upper }} -k /tmp/{{ inventory_hostname }}.keytab"
+      delegate_to: "{{ groups['idm_server'][0] }}"
+
+    - name: Slurp Keytab
+      slurp:
+        src: "/tmp/{{ inventory_hostname }}.keytab"
+      register: keytab
+      delegate_to: "{{ groups['idm_server'][0] }} "
+
+    - name: Copy keytab to node
+      copy:
+        content: "{{ keytab['content'] | b64decode }}"
+        dest: /etc/krb5.keytab
+      

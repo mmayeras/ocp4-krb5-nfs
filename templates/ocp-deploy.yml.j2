@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: krb
+    app.kubernetes.io/component: krb
+    app.kubernetes.io/instance: krb
+  name: krb
+  namespace: "{{ ocp_namespace }}"
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 5
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      deployment: krb
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:      
+      labels:
+        deployment: krb
+    spec:
+      containers:
+      - command:
+        - sleep
+        - infinity
+        env:
+        - name: ACCOUNT_NAME
+          value: {{ nfs_demo_user }}
+        - name: KPASSWORD
+          value: {{ nfs_demo_password }}
+        image: ubi8:latest
+        imagePullPolicy: IfNotPresent
+        name: app2
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: "{{ ocp_pvc }}"
+          name: "{{ ocp_pvc }}"
+      - command:
+        - sleep
+        - infinity
+        env:
+        - name: ACCOUNT_NAME
+          value: {{ nfs_demo_user }}
+        - name: KPASSWORD
+          value: {{ nfs_demo_password }}
+        image: ubi8:latest
+        imagePullPolicy: IfNotPresent
+        name: app
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: "{{ ocp_pvc }}"
+          name: "{{ ocp_pvc }}"
+      - env:
+        - name: ACCOUNT_NAME
+          value: admin
+        - name: KPASSWORD
+          value: redhat123
+        image: image-registry.openshift-image-registry.svc:5000/openshift/{{ ocp_image }}
+        imagePullPolicy: IfNotPresent
+        name: krb
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: "{{ ocp_pvc }}"
+          name: "{{ ocp_pvc }}"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: "{{ ocp_pvc }}"
+        persistentVolumeClaim:
+          claimName: "{{ ocp_pvc }}"

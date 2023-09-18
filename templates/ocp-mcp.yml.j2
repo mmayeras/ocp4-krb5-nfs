@@ -1,0 +1,54 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 98-worker-kerberos-config
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - path: "/etc/sssd/sssd.conf"
+        overwrite: true
+        mode: 384
+        user:
+          id: 0
+        group:
+          id: 0
+        contents:
+          source: >-
+            data:text/plain;charset=utf-8;base64,{{ lookup('template','sssd.conf.j2') | b64encode }}
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,W1VuaXRdCkFmdGVyPXJwY19waXBlZnMudGFyZ2V0CgpbSW5zdGFsbF0KV2FudGVkQnk9bXVsdGktdXNlci50YXJnZXQ=
+        filesystem: root
+        mode: 420
+        overwrite: true
+        path: /etc/systemd/system/rpc-gssd.service.d/override.conf
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,{{ lookup('template','krb5.conf.j2') | b64encode }}
+
+        filesystem: root
+        mode: 420
+        overwrite: true
+        path: /etc/krb5.conf
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,Iw0KIyBUaGlzIGlzIGEgZ2VuZXJhbCBjb25maWd1cmF0aW9uIGZvciB0aGUNCiMgTkZTIGRhZW1vbnMgYW5kIHRvb2xzDQojDQpbZ2VuZXJhbF0NCiMgcGlwZWZzLWRpcmVjdG9yeT0vdmFyL2xpYi9uZnMvcnBjX3BpcGVmcw0KIw0KW2V4cG9ydGZzXQ0KIyBkZWJ1Zz0wDQojDQpbZ3NzZF0NCiB2ZXJib3NpdHk9Mw0KIHJwYy12ZXJib3NpdHk9Mw0KIyB1c2UtbWVtY2FjaGU9MA0KIyB1c2UtbWFjaGluZS1jcmVkcz0xDQp1c2UtZ3NzLXByb3h5PTENCiMgYXZvaWQtZG5zPTENCiMgbGltaXQtdG8tbGVnYWN5LWVuY3R5cGVzPTANCiMgY29udGV4dC10aW1lb3V0PTANCiMgcnBjLXRpbWVvdXQ9NQ0KIyBrZXl0YWItZmlsZT0vZXRjL2tyYjUua2V5dGFiDQojIGNyZWQtY2FjaGUtZGlyZWN0b3J5PQ0KIyBwcmVmZXJyZWQtcmVhbG09DQojDQpbbG9ja2RdDQojIHBvcnQ9MA0KIyB1ZHAtcG9ydD0wDQojDQpbbW91bnRkXQ0KIyBkZWJ1Zz0wDQojIG1hbmFnZS1naWRzPW4NCiMgZGVzY3JpcHRvcnM9MA0KIyBwb3J0PTANCiMgdGhyZWFkcz0xDQojIHJldmVyc2UtbG9va3VwPW4NCiMgc3RhdGUtZGlyZWN0b3J5LXBhdGg9L3Zhci9saWIvbmZzDQojIGhhLWNhbGxvdXQ9DQojDQpbbmZzZGNsZF0NCiMgZGVidWc9MA0KIyBzdG9yYWdlZGlyPS92YXIvbGliL25mcy9uZnNkY2xkDQojDQpbbmZzZGNsdHJhY2tdDQojIGRlYnVnPTANCiMgc3RvcmFnZWRpcj0vdmFyL2xpYi9uZnMvbmZzZGNsdHJhY2sNCiMNCltuZnNkXQ0KIyBkZWJ1Zz0wDQojIHRocmVhZHM9OA0KIyBob3N0PQ0KIyBwb3J0PTANCiMgZ3JhY2UtdGltZT05MA0KIyBsZWFzZS10aW1lPTkwDQojIHRjcD15DQojIHZlcnMyPW4NCiMgdmVyczM9eQ0KIyB2ZXJzND15DQojIHZlcnM0LjA9eQ0KIyB2ZXJzNC4xPXkNCiMgdmVyczQuMj15DQojIHJkbWE9bg0KIyByZG1hLXBvcnQ9MjAwNDkNCiMNCltzdGF0ZF0NCiMgZGVidWc9MA0KIyBwb3J0PTANCiMgb3V0Z29pbmctcG9ydD0wDQojIG5hbWU9DQojIHN0YXRlLWRpcmVjdG9yeS1wYXRoPS92YXIvbGliL25mcy9zdGF0ZA0KIyBoYS1jYWxsb3V0PQ0KIyBuby1ub3RpZnk9MA0KIw0KW3NtLW5vdGlmeV0NCiMgZGVidWc9MA0KIyBmb3JjZT0wDQojIHJldHJ5LXRpbWU9OTAwDQojIG91dGdvaW5nLXBvcnQ9DQojIG91dGdvaW5nLWFkZHI9DQojIGxpZnQtZ3JhY2U9eQ0KIw==
+        filesystem: root
+        mode: 420
+        overwrite: true
+        path: /etc/nfs.conf
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,{{ lookup('template','idmapd.conf.j2') | b64encode }}
+        filesystem: root
+        mode: 420
+        overwrite: true
+        path: /etc/idmapd.conf
+    systemd:
+      units:
+      - enabled: true
+        name: rpc-gssd.service      
+      - enabled: true
+        name: gssproxy.service      
+

@@ -1,0 +1,25 @@
+[sssd]
+domains = {{ network_domain_name }}
+services = nss, pam, autofs
+monitor_resolv_conf = false
+
+[domain/{{ network_domain_name }}]
+id_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+
+
+ldap_uri = "ldap://{{ groups['idm_server'][0] }}/"
+ldap_search_base = "dc={{ network_domain_name.split('.')[0] }},dc={{ network_domain_name.split('.')[1] }}"
+ldap_schema = rfc2307 
+ldap_user_search_base = "cn=users,cn=compat,dc={{ network_domain_name.split('.')[0] }},dc={{ network_domain_name.split('.')[1] }}"
+ldap_default_bind_dn = "uid=admin,cn=users,cn=compat,dc={{ network_domain_name.split('.')[0] }},dc={{ network_domain_name.split('.')[1] }}"
+ldap_default_authtok = {{ default_admin_password }}
+ldap_default_authtok_type = password
+cache_credentials = True   
+case_sensitive = True
+
+krb5_realm = {{ network_domain_name | upper }}
+krb5_store_password_if_offline = true
+ldap_id_mapping = false
+use_fully_qualified_names = false
